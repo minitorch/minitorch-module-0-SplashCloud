@@ -50,9 +50,15 @@ class Module:
 
         """
         named_paras: Sequence[Tuple[str, Parameter]] = []
+        # add the named_parameters of itself
         p: Dict[str, Parameter] = self.__dict__["_parameters"]
         for k, v in p.items():
             named_paras.append((k, v))
+        # add the named_parameters of its descendents
+        m: Dict[str, Module] = self.__dict__["_modules"]
+        for mod_name, mod in m.items():
+            for para_name, para in mod.named_parameters():
+                named_paras.append((f"{mod_name}.{para_name}", para))
         return named_paras
 
     def parameters(self) -> Sequence[Parameter]:
@@ -61,6 +67,8 @@ class Module:
         p: Dict[str, Parameter] = self.__dict__["_parameters"]
         for v in p.values():
             paras.append(v)
+        for m in self.modules():
+            paras.extend(m.parameters())
         return paras
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
