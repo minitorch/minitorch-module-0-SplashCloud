@@ -31,13 +31,15 @@ class Module:
 
     def train(self) -> None:
         """Set the mode of this module and all descendent modules to `train`."""
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        self.training = True
+        for module in self.modules():
+            module.training = True
 
     def eval(self) -> None:
         """Set the mode of this module and all descendent modules to `eval`."""
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        self.training = False
+        for module in self.modules():
+            module.training = False
 
     def named_parameters(self) -> Sequence[Tuple[str, Parameter]]:
         """Collect all the parameters of this module and its descendents.
@@ -47,13 +49,27 @@ class Module:
             The name and `Parameter` of each ancestor parameter.
 
         """
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        named_paras: Sequence[Tuple[str, Parameter]] = []
+        # add the named_parameters of itself
+        p: Dict[str, Parameter] = self.__dict__["_parameters"]
+        for k, v in p.items():
+            named_paras.append((k, v))
+        # add the named_parameters of its descendents
+        m: Dict[str, Module] = self.__dict__["_modules"]
+        for mod_name, mod in m.items():
+            for para_name, para in mod.named_parameters():
+                named_paras.append((f"{mod_name}.{para_name}", para))
+        return named_paras
 
     def parameters(self) -> Sequence[Parameter]:
         """Enumerate over all the parameters of this module and its descendents."""
-        # TODO: Implement for Task 0.4.
-        raise NotImplementedError("Need to implement for Task 0.4")
+        paras: Sequence[Parameter] = []
+        p: Dict[str, Parameter] = self.__dict__["_parameters"]
+        for v in p.values():
+            paras.append(v)
+        for m in self.modules():
+            paras.extend(m.parameters())
+        return paras
 
     def add_parameter(self, k: str, v: Any) -> Parameter:
         """Manually add a parameter. Useful helper for scalar parameters.
@@ -89,6 +105,7 @@ class Module:
         return None
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        """Invoke the module"""
         return self.forward(*args, **kwargs)
 
     def __repr__(self) -> str:
